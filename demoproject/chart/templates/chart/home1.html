@@ -1,0 +1,100 @@
+{% extends 'chart/base.html' %}
+{% block content %}
+
+    <div class="container" >
+        <div style = "margin-top: 10px">
+        <div class="form-group">
+            <select class="form-control" name="" id="app_names"></select>
+        </div>
+    </div>
+    </div>
+
+
+  <div style="text-align:center; margin-top: 10px">
+        <input type="date">
+        {{ MyForm.myDateField }} 
+        <p>start date</p> 
+  </div>
+
+  <div style="text-align:center; margin-top: 10px">
+    <input type="date">
+    {{ MyForm.myDateField }} 
+    <p>end date</p>  
+</div>
+
+<div style=" margin-top: 50px; margin-bottom:10px">
+    <canvas id="myChart" width="300" height="100"></canvas>
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let dates = [];
+        let app_names = []
+        let daily_active_users  = [];
+        let installs = []
+        let revenue = []
+        const url = 'https://s3.us-east-2.wasabisys.com/akshit/dataset-django/ft_assignment.json';
+        async function getInfo(){
+            const response = await fetch(url);
+            const data = await response.json();
+            const series_data_users = data[0].date_wise_metrics.daily_active_users;
+            const data_length = data.length
+            const series_data_installs = data[0].date_wise_metrics.installs;
+            const series_data_revenue = data[0].date_wise_metrics.revenue;
+           
+            console.log(data_length)
+            dates = Object.keys(series_data_users)
+            daily_active_users= Object.values(series_data_users)
+            installs = Object.values(series_data_installs)
+            revenue = Object.values(series_data_revenue)
+            //console.log(dates)
+            //console.log(daily_active_users)
+            var option = ""
+            for(var i=0;i<data_length;i++){
+                //app_names.push(data[i].app_name)
+                option += '<option value= "'+data[i].app_name + '">'  + data[i].app_name +  "</option>"
+            }
+            document.getElementById('app_names').innerHTML = option
+            //console.log(app_names)
+    
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Daily active users',
+                        data: daily_active_users,
+                        fill: false,
+                        borderColor: 'rgb(0, 0, 255)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Installs',
+                        data: installs,
+                        fill: false,
+                        borderColor: 'rgb(0, 255, 0)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'revenue',
+                        data: revenue,
+                        fill: false,
+                        borderColor: 'rgb(255, 0, 0)',
+                        tension: 0.1
+                    }
+                
+                ]
+            
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        } 
+    });
+        }
+        getInfo();
+
+    </script>
+</div>
+{% endblock %}
